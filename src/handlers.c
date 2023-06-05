@@ -197,9 +197,16 @@ static void handle_motion_notify(xcb_motion_notify_event_t *event) {
 
     /* Skip events where the pointer was over a child window, we are only
      * interested in events on the root window. */
-    if (event->child != XCB_NONE)
+    if (event->child != XCB_NONE) {
+        if (!config.disable_focus_follows_mouse) {
+            Con *con;
+            if (con = con_by_frame_id(event->event) != NULL) {
+                con_focus(con);
+                x_push_changes(croot);
+            }
+        }
         return;
-
+    }
     Con *con;
     if ((con = con_by_frame_id(event->event)) == NULL) {
         DLOG("MotionNotify for an unknown container, checking if it crosses screen boundaries.\n");
